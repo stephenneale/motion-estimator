@@ -6,8 +6,8 @@
 #define SEARCH_RANGE 7
 
 // Function to calculate SAD for a block
-int calculate_sad(unsigned char *current, unsigned char *reference, int x, int y, int ref_x, int ref_y, int width, int height) {
-    int sad = 0;
+unsigned short calculate_sad(unsigned char *current, unsigned char *reference, int x, int y, int ref_x, int ref_y, int width, int height) {
+    unsigned short sad = 0;
     for (int i = 0; i < BLOCK_SIZE; i++) {
         for (int j = 0; j < BLOCK_SIZE; j++) {
             int cur_index = (y + i) * width + (x + j);
@@ -21,18 +21,18 @@ int calculate_sad(unsigned char *current, unsigned char *reference, int x, int y
 }
 
 // Function to find the best match for a block in the reference frame
-void find_best_match(unsigned char *current, unsigned char *reference, int x, int y, int width, int height, int *best_x, int *best_y) {
-    int min_sad = INT_MAX;
+void find_best_match(unsigned char *current, unsigned char *reference, int x, int y, int width, int height, char *best_x, char *best_y) {
+    unsigned short min_sad = USHRT_MAX;
     for (int i = -SEARCH_RANGE; i <= SEARCH_RANGE; i++) {
         for (int j = -SEARCH_RANGE; j <= SEARCH_RANGE; j++) {
             int ref_x = x + j;
             int ref_y = y + i;
             if (ref_x >= 0 && ref_y >= 0 && ref_x + BLOCK_SIZE < width && ref_y + BLOCK_SIZE < height) {
-                int sad = calculate_sad(current, reference, x, y, ref_x, ref_y, width, height);
+                unsigned short sad = calculate_sad(current, reference, x, y, ref_x, ref_y, width, height);
                 if (sad < min_sad) {
                     min_sad = sad;
-                    *best_x = ref_x;
-                    *best_y = ref_y;
+                    *best_x = (char)(ref_x - x);
+                    *best_y = (char)(ref_y - y);
                 }
             }
         }
@@ -40,22 +40,22 @@ void find_best_match(unsigned char *current, unsigned char *reference, int x, in
 }
 
 // Function to perform motion estimation for the entire frame
-void motion_estimation(unsigned char *current, unsigned char *reference, int width, int height, int *motion_vectors) {
+void motion_estimation(unsigned char *current, unsigned char *reference, int width, int height, char *motion_vectors) {
     for (int y = 0; y < height; y += BLOCK_SIZE) {
         for (int x = 0; x < width; x += BLOCK_SIZE) {
-            int best_x = 0, best_y = 0;
+            char best_x = 0, best_y = 0;
             find_best_match(current, reference, x, y, width, height, &best_x, &best_y);
             int index = (y / BLOCK_SIZE) * (width / BLOCK_SIZE) + (x / BLOCK_SIZE);
-            motion_vectors[2 * index] = best_x - x;
-            motion_vectors[2 * index + 1] = best_y - y;
+            motion_vectors[2 * index] = best_x;
+            motion_vectors[2 * index + 1] = best_y;
         }
     }
 }
 
 int main() {
     // Example usage
-    int width = 640;
-    int height = 480;
+    int width = 320;
+    int height = 240;
     unsigned char *current_frame = (unsigned char *)malloc(width * height);
     unsigned char *reference_frame = (unsigned char *)malloc(width * height);
 
@@ -65,7 +65,7 @@ int main() {
         reference_frame[i] = rand() % 256;
     }
 
-    int *motion_vectors = (int *)malloc(2 * (width / BLOCK_SIZE) * (height / BLOCK_SIZE) * sizeof(int));
+    char *motion_vectors = (char *)malloc(2 * (width / BLOCK_SIZE) * (height / BLOCK_SIZE) * sizeof(char));
     motion_estimation(current_frame, reference_frame, width, height, motion_vectors);
 
     // Print motion vectors

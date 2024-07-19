@@ -15,4 +15,18 @@ Configured to run on an ARM 32-bit system.
 
 ### Benchmarks
 
-Coming soon.
+Perf:
+
+1. Compile code with gcc, ex: `gcc -0O -o main main.c`
+2. `perf record ./main`
+3. `perf report`
+
+### Reports
+
+Baseline perf report (no code optimization, or gcc optimization)
+
+![perf-baseline](./assets/perf-baseline.png)
+
+GCC optimization flag allowed
+
+![perf-gcc-opti-only.png](./assets/perf-gcc-opti-only.png)

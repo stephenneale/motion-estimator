@@ -12,6 +12,8 @@
 .vscode/
 main.dSYM/
 main
+*.data
+*.data.old
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

@@ -21,6 +21,16 @@ Perf:
 2. `perf record ./main`
 3. `perf report`
 
+Valgrind:
+
+1. Compile code with gcc debug flag enabled `gcc -O0 -g -o main main.c`
+2. `valgrind --leak-check=full ./main`
+
+Cachegrind:
+
+1. Compile code with gcc debug flag enabled `gcc -O0 -g -o main main.c`
+2. `valgrind --tool=cachegrind ./main`
+
 ### Reports
 
 Baseline perf report (no code optimization, or gcc optimization)

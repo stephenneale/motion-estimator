@@ -13,7 +13,7 @@ unsigned short calculate_sad(unsigned char *current, unsigned char *reference, i
             int cur_index = (y + i) * width + (x + j);
             int ref_index = (ref_y + i) * width + (ref_x + j);
             if (cur_index < width * height && ref_index < width * height) {
-                sad += abs(current[cur_index] - reference[ref_index]);
+                sad += abs((int)current[cur_index] - (int)reference[ref_index]);
             }
         }
     }
@@ -27,7 +27,7 @@ void find_best_match(unsigned char *current, unsigned char *reference, int x, in
         for (int j = -SEARCH_RANGE; j <= SEARCH_RANGE; j++) {
             int ref_x = x + j;
             int ref_y = y + i;
-            if (ref_x >= 0 && ref_y >= 0 && ref_x + BLOCK_SIZE < width && ref_y + BLOCK_SIZE < height) {
+            if (ref_x >= 0 && ref_y >= 0 && ref_x + BLOCK_SIZE <= width && ref_y + BLOCK_SIZE <= height) {
                 unsigned short sad = calculate_sad(current, reference, x, y, ref_x, ref_y, width, height);
                 if (sad < min_sad) {
                     min_sad = sad;

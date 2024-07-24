@@ -1,14 +1,16 @@
 # Motion Estimator System
 
-Configured to run on an ARM 32-bit system.
+Configured to run on an ARM 32-bit system, with an 8-bit word depth.
 
 ## Commands
 
 ### Build
 
-- Build without optimisations: `gcc -O0 -o main main.c`
+- Build without optimizations: `gcc -O0 -o main main.c`
+- Build with O3 level GCC optimizations: `gcc -O3 -o main main.c`
 - Build with NEON intrinsics: `gcc -O0 -mfpu=neon -o main main.c`
 - Build assembly code: `gcc -O0 -S -o main.s main.c`
+- Build revision 4 with both NEON intrinsics and O3: `gcc -O3 -mfpu=neon -o main main.c`
 
 ### Run
 
@@ -18,18 +20,18 @@ Configured to run on an ARM 32-bit system.
 
 Perf:
 
-1. Compile code with gcc, ex: `gcc -O0 -o main main.c`
+1. Compile code with desired gcc command, ex: `gcc -O0 -o main main.c`
 2. `perf record ./main`
 3. `perf report`
 
 Valgrind:
 
-1. Compile code with gcc debug flag enabled `gcc -O0 -g -o main main.c`
+1. Compile code with gcc debug flag enabled, ex: `gcc -O0 -g -o main main.c`
 2. `valgrind --leak-check=full ./main`
 
 Cachegrind:
 
-1. Compile code with gcc debug flag enabled `gcc -O0 -g -o main main.c`
+1. Compile code with gcc debug flag enabled, ex: `gcc -O0 -g -o main main.c`
 2. `valgrind --tool=cachegrind ./main`
 
 ### Perf Reports
@@ -38,15 +40,27 @@ Cachegrind:
 
 ![perf-baseline](./assets/perf-baseline.png)
 
-#### 2. GCC optimization (no code optimization)
+#### 2. GCC 3rd-level optimization (no source code optimization)
 
-![perf-gcc-opti-only.png](./assets/perf-gcc-opti-only.png)
+![perf-gccO3.png](./assets/perf-gccO3.png)
 
-#### 3. Revision 1 - Loop unrolling (no gcc optimization)
+#### 3. GCC Fast-level optimization (no source code optimization)
 
-![perf-rev1-loop-unrolling.png](./assets/perf-rev1-loop-unrolling.png)
+![perf-gccOfast](./assets/perf-gccOfast.png)
 
-#### 4. Revision 2 - NEON intrinsics
+#### 4. Revision 1 - Loop unrolling (no gcc optimization)
 
-![perf-rev2-neon.png](./assets/perf-rev2-neon.png)
+![perf-loopunrolling.png](./assets/perf-loopunrolling.png)
+
+#### 5. Revision 2 - NEON vector intrinsics
+
+![perf-neon.png](./assets/perf-neon.png)
+
+#### 6. Revision 3 - Software pipelining
+
+![perf-pipelining.png](./assets/perf-pipelining.png)
+
+#### 7. Revision 4 - Loop unrolling + NEON intrinsics + O3 level GCC optimization
+
+![perf-loop+neon+O3](./assets/perf-loop+neon+O3.png)
 

@@ -6,51 +6,44 @@
 #define BLOCK_SIZE 16
 #define SEARCH_RANGE 7
 
-// Function to calculate SAD for a block using NEON intrinsics
+// Function to calculate SAD for a block with NEON intrinsics
 unsigned short calculate_sad(unsigned char *current, unsigned char *reference, int x, int y, int ref_x, int ref_y, int width, int height) {
     unsigned short sad = 0;
-    uint16x8_t vsad = vdupq_n_u16(0);  // Initialize a vector to accumulate SAD
-
     for (int i = 0; i < BLOCK_SIZE; i++) {
-        for (int j = 0; j < BLOCK_SIZE; j += 8) {  // Process 8 pixels at a time
+        uint16x8_t sum = vdupq_n_u16(0); // Initialize the sum to zero
+        for (int j = 0; j < BLOCK_SIZE; j += 8) {
             int cur_index = (y + i) * width + (x + j);
             int ref_index = (ref_y + i) * width + (ref_x + j);
-
-            if (cur_index + 7 < width * height && ref_index + 7 < width * height) {
-                uint8x8_t vcur = vld1_u8(&current[cur_index]);
-                uint8x8_t vref = vld1_u8(&reference[ref_index]);
-                uint8x8_t vdiff = vabd_u8(vcur, vref);
-                vsad = vaddw_u8(vsad, vdiff);
+            if (cur_index < width * height && ref_index < width * height) {
+                uint8x8_t cur_block = vld1_u8(&current[cur_index]);
+                uint8x8_t ref_block = vld1_u8(&reference[ref_index]);
+                uint8x8_t abs_diff = vabd_u8(cur_block, ref_block);
+                uint16x8_t abs_diff_wide = vmovl_u8(abs_diff); // Widen to 16-bit to prevent overflow
+                sum = vaddq_u16(sum, abs_diff_wide);
             }
         }
+        uint16_t partial_sums[8];
+        vst1q_u16(partial_sums, sum);
+        for (int k = 0; k < 8; k++) {
+            sad += partial_sums[k];
+        }
     }
-
-    // Accumulate the values from the vector
-    sad += vgetq_lane_u16(vsad, 0);
-    sad += vgetq_lane_u16(vsad, 1);
-    sad += vgetq_lane_u16(vsad, 2);
-    sad += vgetq_lane_u16(vsad, 3);
-    sad += vgetq_lane_u16(vsad, 4);
-    sad += vgetq_lane_u16(vsad, 5);
-    sad += vgetq_lane_u16(vsad, 6);
-    sad += vgetq_lane_u16(vsad, 7);
-
     return sad;
 }
 
 // Function to find the best match for a block in the reference frame
-void find_best_match(unsigned char *current, unsigned char *reference, int x, int y, int width, int height, char *best_x, char *best_y) {
+void find_best_match(unsigned char *current, unsigned char *reference, int x, int y, int width, int height, signed char *best_x, signed char *best_y) {
     unsigned short min_sad = USHRT_MAX;
     for (int i = -SEARCH_RANGE; i <= SEARCH_RANGE; i++) {
         for (int j = -SEARCH_RANGE; j <= SEARCH_RANGE; j++) {
             int ref_x = x + j;
             int ref_y = y + i;
-            if (ref_x >= 0 && ref_y >= 0 && ref_x + BLOCK_SIZE < width && ref_y + BLOCK_SIZE < height) {
+            if (ref_x >= 0 && ref_y >= 0 && ref_x + BLOCK_SIZE <= width && ref_y + BLOCK_SIZE <= height) {
                 unsigned short sad = calculate_sad(current, reference, x, y, ref_x, ref_y, width, height);
                 if (sad < min_sad) {
                     min_sad = sad;
-                    *best_x = (char)(ref_x - x);
-                    *best_y = (char)(ref_y - y);
+                    *best_x = (signed char)(ref_x - x);
+                    *best_y = (signed char)(ref_y - y);
                 }
             }
         }
@@ -58,10 +51,10 @@ void find_best_match(unsigned char *current, unsigned char *reference, int x, in
 }
 
 // Function to perform motion estimation for the entire frame
-void motion_estimation(unsigned char *current, unsigned char *reference, int width, int height, char *motion_vectors) {
+void motion_estimation(unsigned char *current, unsigned char *reference, int width, int height, signed char *motion_vectors) {
     for (int y = 0; y < height; y += BLOCK_SIZE) {
         for (int x = 0; x < width; x += BLOCK_SIZE) {
-            char best_x = 0, best_y = 0;
+            signed char best_x = 0, best_y = 0;
             find_best_match(current, reference, x, y, width, height, &best_x, &best_y);
             int index = (y / BLOCK_SIZE) * (width / BLOCK_SIZE) + (x / BLOCK_SIZE);
             motion_vectors[2 * index] = best_x;
@@ -99,7 +92,7 @@ int main() {
     unsigned char *current_frame = read_image_from_text("../utils/current_frame.txt", width, height);
     unsigned char *reference_frame = read_image_from_text("../utils/reference_frame.txt", width, height);
 
-    char *motion_vectors = (char *)malloc(2 * (width / BLOCK_SIZE) * (height / BLOCK_SIZE) * sizeof(char));
+    signed char *motion_vectors = (signed char *)malloc(2 * (width / BLOCK_SIZE) * (height / BLOCK_SIZE) * sizeof(signed char));
     motion_estimation(current_frame, reference_frame, width, height, motion_vectors);
 
     // Print motion vectors

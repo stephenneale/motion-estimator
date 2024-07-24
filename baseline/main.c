@@ -21,7 +21,7 @@ unsigned short calculate_sad(unsigned char *current, unsigned char *reference, i
 }
 
 // Function to find the best match for a block in the reference frame
-void find_best_match(unsigned char *current, unsigned char *reference, int x, int y, int width, int height, char *best_x, char *best_y) {
+void find_best_match(unsigned char *current, unsigned char *reference, int x, int y, int width, int height, signed char *best_x, signed char *best_y) {
     unsigned short min_sad = USHRT_MAX;
     for (int i = -SEARCH_RANGE; i <= SEARCH_RANGE; i++) {
         for (int j = -SEARCH_RANGE; j <= SEARCH_RANGE; j++) {
@@ -31,8 +31,8 @@ void find_best_match(unsigned char *current, unsigned char *reference, int x, in
                 unsigned short sad = calculate_sad(current, reference, x, y, ref_x, ref_y, width, height);
                 if (sad < min_sad) {
                     min_sad = sad;
-                    *best_x = (char)(ref_x - x);
-                    *best_y = (char)(ref_y - y);
+                    *best_x = (signed char)(ref_x - x);
+                    *best_y = (signed char)(ref_y - y);
                 }
             }
         }
@@ -40,10 +40,10 @@ void find_best_match(unsigned char *current, unsigned char *reference, int x, in
 }
 
 // Function to perform motion estimation for the entire frame
-void motion_estimation(unsigned char *current, unsigned char *reference, int width, int height, char *motion_vectors) {
+void motion_estimation(unsigned char *current, unsigned char *reference, int width, int height, signed char *motion_vectors) {
     for (int y = 0; y < height; y += BLOCK_SIZE) {
         for (int x = 0; x < width; x += BLOCK_SIZE) {
-            char best_x = 0, best_y = 0;
+            signed char best_x = 0, best_y = 0;
             find_best_match(current, reference, x, y, width, height, &best_x, &best_y);
             int index = (y / BLOCK_SIZE) * (width / BLOCK_SIZE) + (x / BLOCK_SIZE);
             motion_vectors[2 * index] = best_x;
@@ -81,7 +81,7 @@ int main() {
     unsigned char *current_frame = read_image_from_text("../utils/current_frame.txt", width, height);
     unsigned char *reference_frame = read_image_from_text("../utils/reference_frame.txt", width, height);
 
-    char *motion_vectors = (char *)malloc(2 * (width / BLOCK_SIZE) * (height / BLOCK_SIZE) * sizeof(char));
+    signed char *motion_vectors = (signed char *)malloc(2 * (width / BLOCK_SIZE) * (height / BLOCK_SIZE) * sizeof(signed char));
     motion_estimation(current_frame, reference_frame, width, height, motion_vectors);
 
     // Print motion vectors

@@ -78,8 +78,8 @@ unsigned char* read_image_from_text(const char *filename, int width, int height)
 int main() {
     int width = 320;
     int height = 240;
-    unsigned char *current_frame = read_image_from_text("../assets/current_frame.txt", width, height);
-    unsigned char *reference_frame = read_image_from_text("../assets/reference_frame.txt", width, height);
+    unsigned char *current_frame = read_image_from_text("../utils/current_frame.txt", width, height);
+    unsigned char *reference_frame = read_image_from_text("../utils/reference_frame.txt", width, height);
 
     char *motion_vectors = (char *)malloc(2 * (width / BLOCK_SIZE) * (height / BLOCK_SIZE) * sizeof(char));
     motion_estimation(current_frame, reference_frame, width, height, motion_vectors);

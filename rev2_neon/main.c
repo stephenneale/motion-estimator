@@ -70,34 +70,18 @@ void motion_estimation(unsigned char *current, unsigned char *reference, int wid
     }
 }
 
-// Function to read image data from a text file
-unsigned char* read_image_from_text(const char *filename, int width, int height) {
-    FILE *file = fopen(filename, "r");
-    if (!file) {
-        perror("Error opening file");
-        exit(EXIT_FAILURE);
-    }
-    unsigned char *image = (unsigned char *)malloc(width * height);
-    if (!image) {
-        perror("Error allocating memory");
-        exit(EXIT_FAILURE);
-    }
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            unsigned int pixel;
-            fscanf(file, "%u", &pixel);
-            image[i * width + j] = (unsigned char)pixel;
-        }
-    }
-    fclose(file);
-    return image;
-}
-
 int main() {
+    // Example usage
     int width = 320;
     int height = 240;
-    unsigned char *current_frame = read_image_from_text("../assets/current_frame.txt", width, height);
-    unsigned char *reference_frame = read_image_from_text("../assets/reference_frame.txt", width, height);
+    unsigned char *current_frame = (unsigned char *)malloc(width * height);
+    unsigned char *reference_frame = (unsigned char *)malloc(width * height);
+
+    // Initialize frames with some data (this should be replaced with actual frame data)
+    for (int i = 0; i < width * height; i++) {
+        current_frame[i] = rand() % 256;
+        reference_frame[i] = rand() % 256;
+    }
 
     char *motion_vectors = (char *)malloc(2 * (width / BLOCK_SIZE) * (height / BLOCK_SIZE) * sizeof(char));
     motion_estimation(current_frame, reference_frame, width, height, motion_vectors);

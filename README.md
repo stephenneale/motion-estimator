@@ -17,7 +17,7 @@ Configured to run on an ARM 32-bit system.
 
 Perf:
 
-1. Compile code with gcc, ex: `gcc -0O -o main main.c`
+1. Compile code with gcc, ex: `gcc -O0 -o main main.c`
 2. `perf record ./main`
 3. `perf report`
 
@@ -31,12 +31,16 @@ Cachegrind:
 1. Compile code with gcc debug flag enabled `gcc -O0 -g -o main main.c`
 2. `valgrind --tool=cachegrind ./main`
 
-### Reports
+### Perf Reports
 
-Baseline perf report (no code optimization, or gcc optimization)
+## 1. Baseline (no code optimization, or gcc optimization)
 
 ![perf-baseline](./assets/perf-baseline.png)
 
-GCC optimization flag allowed
+## 2. GCC optimization (no code optimization)
 
 ![perf-gcc-opti-only.png](./assets/perf-gcc-opti-only.png)
+
+## 3. Revision 1 - Loop unrolling (no gcc optimization)
+
+![perf-rev1-loop-unrolling.png](./assets/perf-rev1-loop-unrolling.png)

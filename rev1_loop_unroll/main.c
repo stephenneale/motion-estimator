@@ -5,20 +5,44 @@
 #define BLOCK_SIZE 16
 #define SEARCH_RANGE 7
 
-// Function to calculate SAD for a block
-unsigned short calculate_sad(unsigned char *current, unsigned char *reference, int x, int y, int ref_x, int ref_y, int width, int height) {
+// Function to calculate SAD for a block with loop unrolling
+unsigned short calculate_sad(unsigned char *current, unsigned char *reference, int x, int y,
+                             int ref_x, int ref_y, int width, int height) {
     unsigned short sad = 0;
     for (int i = 0; i < BLOCK_SIZE; i++) {
-        for (int j = 0; j < BLOCK_SIZE; j++) {
-            int cur_index = (y + i) * width + (x + j);
-            int ref_index = (ref_y + i) * width + (ref_x + j);
-            if (cur_index < width * height && ref_index < width * height) {
-                sad += abs((int)current[cur_index] - (int)reference[ref_index]);
+        for (int j = 0; j < BLOCK_SIZE; j += 4) { // Unrolling by a factor of 4
+            int cur_index0 = (y + i) * width + (x + j);
+            int ref_index0 = (ref_y + i) * width + (ref_x + j);
+
+            int cur_index1 = (y + i) * width + (x + j + 1);
+            int ref_index1 = (ref_y + i) * width + (ref_x + j + 1);
+
+            int cur_index2 = (y + i) * width + (x + j + 2);
+            int ref_index2 = (ref_y + i) * width + (ref_x + j + 2);
+
+            int cur_index3 = (y + i) * width + (x + j + 3);
+            int ref_index3 = (ref_y + i) * width + (ref_x + j + 3);
+
+            if (cur_index0 < width * height && ref_index0 < width * height) {
+                sad += abs((int)current[cur_index0] - (int)reference[ref_index0]);
+            }
+
+            if (cur_index1 < width * height && ref_index1 < width * height) {
+                sad += abs((int)current[cur_index1] - (int)reference[ref_index1]);
+            }
+
+            if (cur_index2 < width * height && ref_index2 < width * height) {
+                sad += abs((int)current[cur_index2] - (int)reference[ref_index2]);
+            }
+
+            if (cur_index3 < width * height && ref_index3 < width * height) {
+                sad += abs((int)current[cur_index3] - (int)reference[ref_index3]);
             }
         }
     }
     return sad;
 }
+
 
 // Function to find the best match for a block in the reference frame
 void find_best_match(unsigned char *current, unsigned char *reference, int x, int y, int width, int height, signed char *best_x, signed char *best_y) {
